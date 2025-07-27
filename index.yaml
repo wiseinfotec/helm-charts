@@ -3,6 +3,27 @@ entries:
   presidio:
   - apiVersion: v2
     appVersion: latest
+    created: "2025-07-27T15:27:12.893912819Z"
+    description: An open-source framework for detecting, redacting, masking, and anonymizing
+      sensitive data (PII) across text, images, and structured data. Supports NLP,
+      pattern matching, and customizable pipelines.
+    digest: 8f90da696e930a8fb9b41c8783a50d24cb7be334810b7b2365ed5e1613d38973
+    home: https://github.com/microsoft/presidio
+    kubeVersion: '>=1.18.0'
+    maintainers:
+    - name: WiseInfotec
+      url: https://wiseinfotec.net/
+    - name: Microsoft
+      url: https://github.com/microsoft/presidio
+    name: presidio
+    sources:
+    - https://github.com/microsoft/presidio
+    - https://github.com/wiseinfotec/helm-charts/charts/presidio
+    urls:
+    - https://github.com/wiseinfotec/helm-charts/releases/download/presidio-2.0.2/presidio-2.0.2.tgz
+    version: 2.0.2
+  - apiVersion: v2
+    appVersion: latest
     created: "2025-07-27T14:49:45.282174436Z"
     description: An open-source framework for detecting, redacting, masking, and anonymizing
       sensitive data (PII) across text, images, and structured data. Supports NLP,
@@ -38,4 +59,4 @@ entries:
     urls:
     - https://github.com/wiseinfotec/helm-charts/releases/download/supabase-0.1.3/supabase-0.1.3.tgz
     version: 0.1.3
-generated: "2025-07-27T14:49:45.418398573Z"
+generated: "2025-07-27T15:27:12.893922518Z"
