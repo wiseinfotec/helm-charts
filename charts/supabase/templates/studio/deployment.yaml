@@ -5,6 +5,10 @@ metadata:
   name: {{ include "supabase.studio.fullname" . }}
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
+  {{- with .Values.studio.deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   {{- if not .Values.studio.autoscaling.enabled }}
   replicas: {{ .Values.studio.replicaCount }}
@@ -73,8 +77,13 @@ spec:
             - name: LOGFLARE_API_KEY
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.secret.analytics.secretRef }}
+                  name: {{ .Values.secret.analytics.secretRef }}
+                  key: {{ .Values.secret.analytics.secretRefKey.apiKey | default "apiKey" }}
+                  {{- else }}
                   name: {{ include "supabase.secret.analytics" . }}
                   key: apiKey
+                  {{- end }}
             {{- end }}
           {{- with .Values.studio.livenessProbe }}
           livenessProbe:

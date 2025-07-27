@@ -16,13 +16,23 @@ spec:
             - name: DASHBOARD_USERNAME
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.secret.dashboard.secretRef }}
+                  name: {{ .Values.secret.dashboard.secretRef }}
+                  key: {{ .Values.secret.dashboard.secretRefKey.username | default "username" }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.dashboard" . }}
                   key: username
-                  name: {{ include "supabase.fullname" . }}-dashboard
+                  {{- end }}
             - name: DASHBOARD_PASSWORD
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.secret.dashboard.secretRef }}
+                  name: {{ .Values.secret.dashboard.secretRef }}
+                  key: {{ .Values.secret.dashboard.secretRefKey.password | default "password" }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.dashboard" . }}
                   key: password
-                  name: {{ include "supabase.fullname" . }}-dashboard
+                  {{- end }}
           name: test-kong
           image: kdevup/curljq
           imagePullPolicy: IfNotPresent
@@ -34,7 +44,8 @@ spec:
               curl -sL --fail \
                 -o /dev/null \
                 "http://${DASHBOARD_USERNAME}:${DASHBOARD_PASSWORD}@{{ include "supabase.kong.fullname" . }}:{{ .Values.kong.service.port }}" \
-                || ( echo -e "\e[0;31mFailed to get a valid response." && exit 1 )
+                  || { echo -e "\033[31mFailed to connect to the {{ include "supabase.kong.fullname" . }}.\033[0m"; exit 1; }
+
               echo "Successfully connected."
       restartPolicy: Never
 {{- end }}
