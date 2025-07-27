@@ -8,6 +8,13 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
+    {{- with (merge .Values.anonymizerimage.deploymentLabels .Values.commonLabels) }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with (merge .Values.anonymizerimage.deploymentAnnotations .Values.commonAnnotations) }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.anonymizerimage.replicas }}
   selector:
@@ -32,7 +39,18 @@ spec:
             memory: {{ .Values.anonymizerimage.container.resources.limits.memory }}
             cpu: {{ .Values.anonymizerimage.container.resources.limits.cpu }}
         env:
-          - name: PORT
-            value: {{ .Values.anonymizerimage.service.internalPort | quote }}
-      {{ if .Values.privateRegistry }}imagePullSecrets:
-        - name: {{.Values.privateRegistry}}{{ end }}
+        - name: PORT
+          value: {{ .Values.anonymizerimage.service.internalPort | quote }}
+        {{- with .Values.anonymizerimage.environmentVars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.anonymizerimage.extraVolumeMounts }}
+        volumeMounts: {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- if .Values.privateRegistry }}
+        imagePullSecrets:
+      - name: {{.Values.privateRegistry}}
+      {{- end }}
+      {{- with .Values.anonymizerimage.extraVolumes }}
+      volumes: {{- toYaml . | nindent 6 }}
+      {{- end }}

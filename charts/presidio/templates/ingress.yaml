@@ -11,9 +11,15 @@ metadata:
     chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
+    {{- with (merge .Values.ingress.labels .Values.commonLabels) }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   annotations:
     kubernetes.io/ingress.class: {{ .Values.ingress.class }}
     nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+    {{- with (merge .Values.ingress.annotations .Values.commonAnnotations) }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   rules:
   - http:

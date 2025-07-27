@@ -8,10 +8,15 @@ tag: latest
 ingress:
   enabled: true
   class: nginx
+  annotations: {}
+  labels: {}
 
 # For any of the services below, a service mesh like Linkerd or Istio
 # is needed to properly balance traffic to more than 1 replica.
 # https://github.com/microsoft/presidio/issues/304
+
+commonAnnotations: {}
+commonLabels: {}
 
 analyzer:
   name: presidio-analyzer
@@ -25,7 +30,14 @@ analyzer:
       limits:
         memory: "3000Mi"
         cpu: "2000m"
+  deploymentAnnotations: {}
+  deploymentLabels: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  environmentVars: []
   service:
+    annotations: {}
+    labels: {}
     type: ClusterIP
     externalPort: 80
     internalPort: 8080
@@ -43,7 +55,14 @@ anonymizer:
       limits:
         memory: "512Mi"
         cpu: "500m"
+  deploymentAnnotations: {}
+  deploymentLabels: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  environmentVars: []
   service:
+    annotations: {}
+    labels: {}
     type: ClusterIP
     externalPort: 80
     internalPort: 8080
@@ -61,7 +80,14 @@ anonymizerimage:
       limits:
         memory: "3000Mi"
         cpu: "2000m"
+  deploymentAnnotations: {}
+  deploymentLabels: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  environmentVars: []
   service:
+    annotations: {}
+    labels: {}
     type: ClusterIP
     externalPort: 80
     internalPort: 8080

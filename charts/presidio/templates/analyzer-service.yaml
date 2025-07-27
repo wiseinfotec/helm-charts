@@ -9,6 +9,13 @@ metadata:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
+    {{- with (merge .Values.analyzer.service.labels .Values.commonLabels) }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with (merge .Values.analyzer.service.annotations .Values.commonAnnotations) }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.analyzer.service.type }}
   ports:
