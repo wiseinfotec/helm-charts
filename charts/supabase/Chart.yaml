@@ -1,0 +1,17 @@
+apiVersion: v2
+name: supabase
+description: The open source Firebase alternative.
+type: application
+version: 0.1.3
+kubeVersion: ">=1.18.0"
+appVersion: latest
+sources:
+  - https://github.com/supabase/supabase
+  - https://github.com/supabase-community/supabase-kubernetes
+  - https://github.com/wiseinfotec/helm-charts/charts/supabase
+maintainers:
+  - name: WiseInfotec
+    url: https://wiseinfotec.net/
+# Originally maintained by the Supabase Community
+  - name: Supabase Community
+    url: https://github.com/supabase-community/supabase-kubernetes
