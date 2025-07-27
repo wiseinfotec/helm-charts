@@ -1,8 +1,7 @@
 registry: mcr.microsoft.com
- 
+
 # Image pull secret
 # privateRegistry: acr-auth
-tag: latest
 
 # supported types are nginx (wip: traefik and istio)
 ingress:
@@ -20,6 +19,7 @@ commonLabels: {}
 
 analyzer:
   name: presidio-analyzer
+  tag: latest
   replicas: 1
   imagePullPolicy: Always
   container:
@@ -45,6 +45,7 @@ analyzer:
 
 anonymizer:
   name: presidio-anonymizer
+  tag: latest
   replicas: 1
   imagePullPolicy: Always
   container:
@@ -70,6 +71,7 @@ anonymizer:
 
 anonymizerimage:
   name: presidio-image-redactor
+  tag: latest
   replicas: 1
   imagePullPolicy: Always
   container:
