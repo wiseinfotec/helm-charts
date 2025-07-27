@@ -1,0 +1,10 @@
+apiVersion: v2
+description: An open-source framework for detecting, redacting, masking, and anonymizing sensitive data (PII) across text, images, and structured data. Supports NLP, pattern matching, and customizable pipelines.
+name: presidio
+home: https://github.com/microsoft/presidio
+version: 2.0.0
+kubeVersion: ">=1.18.0"
+appVersion: latest
+sources:
+  - https://github.com/microsoft/presidio
+  - https://github.com/wiseinfotec/helm-charts/charts/presidio
