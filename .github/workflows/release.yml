@@ -2,8 +2,10 @@ name: Release Charts
 
 on:
   push:
-    tags:
-    - '[a-z-]+/v[0-9]+.[0-9]+.[0-9]+'
+    branches:
+      - main
+    paths:
+      - 'charts/**'
 
 jobs:
   release:
