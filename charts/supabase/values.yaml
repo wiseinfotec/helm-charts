@@ -28,19 +28,24 @@ secret:
       anonKey: anonKey
       serviceKey: serviceKey
       secret: secret
-  # database credentials
+  # database admin user credentials
   # these fields must be provided even if using external database
   db:
-    username: ""
+    # Override the database hostname if using external database
+    host: "DATABASE.NAMESPACE.svc.cluster.local"
+    port: 5432
+    sslmode: disable  # disable, allow, prefer, require, verify-ca, verify-full
+    # The 'supabase_admin' is hardcoded in the supabase/postgres container
+    username: "supabase_admin"
     password: ""
-    database: ""
+    # The 'postgres' is hardcoded in the supabase/postgres container
+    database: "postgres"
     # specify existing secret, which takes precedence over variables above
     secretRef: ""
     # override secret keys for existing secret refs
     secretRefKey:
       username: username
       password: password
-      database: database
   # analytics Logflare API key
   analytics:
     apiKey: ""
@@ -80,6 +85,13 @@ secret:
     secretRefKey:
       keyId: keyId
       accessKey: accessKey
+
+init_db:
+  image:
+    repository: postgres
+    pullPolicy: IfNotPresent
+    tag: "13.22-alpine"
+  podSecurityContext: {}
 
 # Optional: Postgres Database
 # A standalone Postgres database configured to work with Supabase services.
@@ -290,12 +302,6 @@ auth:
     type: ClusterIP
     port: 9999
   environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USER: supabase_auth_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgres
-    DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
     API_EXTERNAL_URL: http://example.com
     GOTRUE_API_HOST: "0.0.0.0"
     GOTRUE_API_PORT: "9999"
@@ -393,12 +399,6 @@ rest:
     type: ClusterIP
     port: 3000
   environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USER: authenticator
-    DB_PORT: 5432
-    DB_DRIVER: postgres
-    DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
     PGRST_DB_SCHEMAS: public,storage,graphql_public
     PGRST_DB_ANON_ROLE: anon
     PGRST_DB_USE_LEGACY_GUCS: false
@@ -473,11 +473,6 @@ realtime:
     type: ClusterIP
     port: 4000
   environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USER: supabase_admin
-    DB_PORT: 5432
-    DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
     DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
     DB_ENC_KEY: supabaserealtime
     PORT: "4000"
@@ -558,12 +553,6 @@ meta:
     type: ClusterIP
     port: 8080
   environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USER: supabase_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgres
-    DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
     PG_META_PORT: "8080"
   # volumeMounts:
   #   - name: volume_name
@@ -636,11 +625,6 @@ storage:
     type: ClusterIP
     port: 5000
   environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USER: supabase_storage_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgres
     DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
     PGOPTIONS: -c search_path=storage,public
     FILE_SIZE_LIMIT: "52428800"
@@ -916,11 +900,6 @@ analytics:
     port: 4000
   environment:
     LOGFLARE_NODE_HOST: 127.0.0.1
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USERNAME: supabase_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgresql
     DB_SCHEMA: _analytics
     LOGFLARE_SINGLE_TENANT: "true"
     LOGFLARE_SUPABASE_MODE: "true"
@@ -1071,13 +1050,7 @@ functions:
     annotations: {}
     type: ClusterIP
     port: 9000
-  environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USERNAME: supabase_functions_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgresql
-    DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
+  environment: {}
   # Mount user functions
   # volumeMounts:
   #   - name: my_functions

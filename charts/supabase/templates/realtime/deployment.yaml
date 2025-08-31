@@ -33,36 +33,7 @@ spec:
       securityContext:
         {{- toYaml .Values.realtime.podSecurityContext | nindent 8 }}
       initContainers:
-        - name: init-db
-          image: postgres:15-alpine
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: DB_HOST
-              {{- if .Values.db.enabled }}
-              value: {{ include "supabase.db.fullname" . | quote }}
-              {{- else }}
-              value: {{ .Values.auth.environment.DB_HOST | quote }}
-              {{- end }}
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.username | default "username" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: username
-                  {{- end }}
-            - name: DB_PORT
-              value: {{ .Values.analytics.environment.DB_PORT | quote }}
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              until pg_isready -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER); do
-              echo "Waiting for database to start..."
-              sleep 2
-              done
-            - echo "Database is ready"
+        {{- include "supabase.waitForDB" . | nindent 8 }}
       containers:
         - name: {{ include "supabase.realtime.name" $ }}
           securityContext:
@@ -76,32 +47,20 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
-            {{- if .Values.db.enabled }}
-            - name: DB_HOST
-              value: {{ include "supabase.db.fullname" . }}
-            {{- end }}
             - name: TENANT_NAME
               value: {{ include "supabase.realtime.fullname" . }}
+            - name: DB_HOST
+              value: {{ include "supabase.database.host" . | quote }}
+            - name: DB_PORT
+              value: {{ include "supabase.database.port" . | quote }}
+            - name: DB_SSL_MODE
+              value: {{ include "supabase.database.sslmode" . | quote }}
+            - name: DB_USER
+              value: {{ include "supabase.database.username" . | quote }}
             - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password
-                  {{- end }}
+              value: {{ include "supabase.database.password" . | quote }}
             - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.database | default "database" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: database
-                  {{- end }}
+              value: {{ include "supabase.database.name" . | quote }}
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:

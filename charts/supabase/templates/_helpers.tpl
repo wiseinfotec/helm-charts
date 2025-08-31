@@ -60,3 +60,99 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Return the database host
+*/}}
+{{- define "supabase.database.host" -}}
+{{- if .Values.db.enabled -}}
+  {{- print (include "supabase.db.fullname" .) -}}
+{{- else -}}
+  {{- print .Values.secret.db.host -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the database port
+*/}}
+{{- define "supabase.database.port" -}}
+{{- if .Values.db.enabled -}}
+  {{- print .Values.db.service.port -}}
+{{- else -}}
+  {{- print .Values.secret.db.port  -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the database sslmode
+*/}}
+{{- define "supabase.database.sslmode" -}}
+{{- if .Values.db.enabled -}}
+  {{- print "disable" -}}
+{{- else -}}
+  {{- print .Values.secret.db.sslmode -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the database name
+*/}}
+{{- define "supabase.database.name" -}}
+{{- if .Values.db.enabled -}}
+  {{/* The 'postgres' is hardcoded in the supabase/postgres container */}}
+  {{- print "postgres" -}}
+{{- else -}}
+  {{- print .Values.secret.db.database -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the database username
+*/}}
+{{- define "supabase.database.username" -}}
+{{- if .Values.db.enabled -}}
+  {{/* The 'supabase_admin' is hardcoded in the supabase/postgres container */}}
+  {{- print "supabase_admin" -}}
+{{- else -}}
+  {{- if .Values.secret.secretRef -}}
+    {{- print .Values.secret.secretRefKey.username -}}
+  {{- else -}}
+    {{- print .Values.secret.db.username -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the database user password
+*/}}
+{{- define "supabase.database.password" -}}
+{{- if .Values.secret.secretRef -}}
+  {{- print .Values.secret.secretRefKey.password -}}
+{{- else -}}
+  {{- print .Values.secret.db.password -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "supabase.waitForDB" -}}
+- name: wait-for-db
+  image: {{ .Values.init_db.image.repository }}:{{ .Values.init_db.image.tag }}
+  imagePullPolicy: {{ .Values.init_db.image.pullPolicy }}
+  securityContext:
+  {{- toYaml .Values.init_db.podSecurityContext | nindent 4 }}
+  command:
+    - bash
+    - -ec
+    - |
+      until pg_isready -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER); do
+      echo "Waiting for database to start..."
+      sleep 2
+      done
+    - echo "Database is ready"
+  env:
+    - name: DB_HOST
+      value: {{ include "supabase.database.host" . | quote }}
+    - name: DB_PORT
+      value: {{ include "supabase.database.port" . | quote }}
+    - name: DB_USER
+      values: {{ include "supabase.database.username" . | quote }}
+{{- end -}}

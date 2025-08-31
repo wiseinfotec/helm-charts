@@ -34,38 +34,12 @@ spec:
       securityContext:
         {{- toYaml .Values.storage.podSecurityContext | nindent 8 }}
       initContainers:
-        - name: init-db
-          image: postgres:15-alpine
+        {{- include "supabase.waitForDB" . | nindent 8 }}
+        {{- if .Values.minio.enabled }}
+        - name: init-bucket
+          image: minio/mc
           imagePullPolicy: IfNotPresent
           env:
-            - name: DB_HOST
-              {{- if .Values.db.enabled }}
-              value: {{ include "supabase.db.fullname" . | quote }}
-              {{- else }}
-              value: {{ .Values.auth.environment.DB_HOST | quote }}
-              {{- end }}
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.username | default "username" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: username
-                  {{- end }}
-            - name: DB_PORT
-              value: {{ .Values.analytics.environment.DB_PORT | quote }}
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              until pg_isready -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER); do
-              echo "Waiting for database to start..."
-              sleep 2
-              done
-            - echo "Database is ready"
-        {{- if .Values.minio.enabled }}
-        - env:
             - name: MINIO_ROOT_USER
               valueFrom:
                 secretKeyRef:
@@ -76,9 +50,6 @@ spec:
                 secretKeyRef:
                   name: {{ include "supabase.secret.s3" . }}
                   key: accessKey
-          name: init-bucket
-          image: minio/mc
-          imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
             - -c
@@ -100,46 +71,24 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
-            {{- if .Values.db.enabled }}
-            - name: DB_HOST
-              value: {{ include "supabase.db.fullname" . }}
-            {{- end }}
             {{- if .Values.rest.enabled }}
             - name: POSTGREST_URL
               value: http://{{ include "supabase.rest.fullname" . }}:{{ .Values.rest.service.port }}
             {{- end }}
+            - name: DB_HOST
+              value: {{ include "supabase.database.host" . | quote }}
+            - name: DB_PORT
+              value: {{ include "supabase.database.port" . | quote }}
+            - name: DB_SSL
+              value: {{ include "supabase.database.sslmode" . | quote }}
+            - name: DB_USER
+              value: {{ include "supabase.database.username" . | quote }}
             - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password
-                  {{- end }}
-            - name: DB_PASSWORD_ENC
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password_encoded
-                  {{- end }}
+              value: {{ include "supabase.database.password" . | quote }}
             - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.database | default "database" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: database
-                  {{- end }}
+              value: {{ include "supabase.database.name" . | quote }}
             - name: DATABASE_URL
-              value: $(DB_DRIVER)://$(DB_USER):$(DB_PASSWORD_ENC)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?search_path=auth&sslmode=$(DB_SSL)
+              value: postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSL)
             - name: PGRST_JWT_SECRET
               valueFrom:
                 secretKeyRef:
