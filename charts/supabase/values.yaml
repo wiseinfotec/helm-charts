@@ -129,7 +129,7 @@ db:
   image:
     repository: supabase/postgres
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "17.4.1.078"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -218,7 +218,7 @@ studio:
   image:
     repository: supabase/studio
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "2025.09.01-sha-8bf1fd5"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -306,7 +306,7 @@ auth:
   image:
     repository: supabase/gotrue
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v2.179.0"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -414,7 +414,7 @@ rest:
   image:
     repository: postgrest/postgrest
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v13.0.6"
   imagePullSecrets: []
   nameOverride: ""
   fullnameOverride: ""
@@ -488,7 +488,7 @@ realtime:
   image:
     repository: supabase/realtime
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v2.46.3"
   imagePullSecrets: []
   nameOverride: ""
   fullnameOverride: ""
@@ -581,7 +581,7 @@ meta:
   image:
     repository: supabase/postgres-meta
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v0.91.5"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -653,7 +653,7 @@ storage:
   image:
     repository: supabase/storage-api
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v1.26.4"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -756,7 +756,7 @@ imgproxy:
   image:
     repository: darthsim/imgproxy
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v3.29.1"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -851,7 +851,7 @@ kong:
   image:
     repository: kong
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "3.9.1"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -949,7 +949,7 @@ analytics:
   image:
     repository: supabase/logflare
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "1.20.1"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -1041,7 +1041,7 @@ vector:
   image:
     repository: timberio/vector
     pullPolicy: IfNotPresent
-    tag: "latest-alpine"
+    tag: "0.49.0-alpine"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -1121,7 +1121,7 @@ functions:
   image:
     repository: supabase/edge-runtime
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v1.69.6"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -1194,7 +1194,7 @@ supavisor:
   image:
     repository: supabase/supavisor
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "2.6.2"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -1272,7 +1272,7 @@ minio:
   image:
     repository: minio/minio
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "RELEASE.2025-07-23T15-54-02Z"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
