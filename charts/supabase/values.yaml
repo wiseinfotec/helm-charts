@@ -970,7 +970,7 @@ vector:
   image:
     repository: timberio/vector
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "latest-alpine"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
