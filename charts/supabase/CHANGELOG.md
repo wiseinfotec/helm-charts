@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.5] - 2025-09-02
+
+- Optimize init-db container
+- Adjust DB related env and reduce their duplication
+- Add some missed ENV variables as well as replace deprecated one
+- Add release namespace to the template files
+- Add supabase/supervisor image deployment
+- Add some pods healthcheck
+
 ## [0.1.4] - 2025-07-27
 
 Merging some pull requests from [original](https://github.com/supabase-community/supabase-kubernetes) repository:
