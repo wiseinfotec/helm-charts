@@ -68,7 +68,7 @@ Return the database host
 {{- if .Values.db.enabled -}}
   {{- print (include "supabase.db.fullname" .) -}}
 {{- else -}}
-  {{- print .Values.secret.db.host -}}
+  {{- print .Values.external_db.host -}}
 {{- end -}}
 {{- end -}}
 
@@ -79,7 +79,7 @@ Return the database port
 {{- if .Values.db.enabled -}}
   {{- print .Values.db.service.port -}}
 {{- else -}}
-  {{- print .Values.secret.db.port  -}}
+  {{- print .Values.external_db.port -}}
 {{- end -}}
 {{- end -}}
 
@@ -90,47 +90,70 @@ Return the database sslmode
 {{- if .Values.db.enabled -}}
   {{- print "disable" -}}
 {{- else -}}
-  {{- print .Values.secret.db.sslmode -}}
+  {{- print .Values.external_db.sslmode -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return the database name
+The next variables are hardcoded in the supabase postgres db init scripts and migrations.
 */}}
-{{- define "supabase.database.name" -}}
+{{- define "supabase.database.supabase_username" -}}
 {{- if .Values.db.enabled -}}
-  {{/* The 'postgres' is hardcoded in the supabase/postgres container */}}
-  {{- print "postgres" -}}
-{{- else -}}
-  {{- print .Values.secret.db.database -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Return the database username
-*/}}
-{{- define "supabase.database.username" -}}
-{{- if .Values.db.enabled -}}
-  {{/* The 'supabase_admin' is hardcoded in the supabase/postgres container */}}
   {{- print "supabase_admin" -}}
 {{- else -}}
-  {{- if .Values.secret.secretRef -}}
-    {{- print .Values.secret.secretRefKey.username -}}
-  {{- else -}}
-    {{- print .Values.secret.db.username -}}
-  {{- end -}}
+  {{- print .Values.external_db.username -}}
 {{- end -}}
+{{- end -}}
+
+{{- define "supabase.database.storage_username" -}}
+  {{- print "supabase_storage_admin" -}}
+{{- end -}}
+
+{{- define "supabase.database.rest_username" -}}
+  {{- print "authenticator" -}}
+{{- end -}}
+
+{{- define "supabase.database.auth_username" -}}
+  {{- print "supabase_auth_admin" -}}
+{{- end -}}
+
+{{- define "supabase.database.db_name" -}}
+{{- if .Values.db.enabled -}}
+  {{- print "postgres" -}}
+{{- else -}}
+  {{- print .Values.external_db.database -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "supabase.database.supabase_db_name" -}}
+  {{- print "_supabase" -}}
+{{- end -}}
+
+{{- define "supabase.database.analytics_db_name" -}}
+  {{- print "_analytics" -}}
+{{- end -}}
+
+{{- define "supabase.database.realtime_db_name" -}}
+  {{- print "_realtime" -}}
 {{- end -}}
 
 {{/*
 Return the database user password
 */}}
 {{- define "supabase.database.password" -}}
+{{- if .Values.db.enabled -}}
 {{- if .Values.secret.secretRef -}}
-  {{- print .Values.secret.secretRefKey.password -}}
+  {{- print .Values.secret.db.secretRefKey.password -}}
 {{- else -}}
   {{- print .Values.secret.db.password -}}
 {{- end -}}
+{{- else-}}
+{{- if .Values.external_db.secretRef -}}
+  {{- print .Values.external_db.secretRefKey.password -}}
+{{- else -}}
+  {{- print .Values.external_db.password -}}
+{{- end -}}
+{{- end-}}
 {{- end -}}
 
 {{- define "supabase.waitForDB" -}}
@@ -154,5 +177,5 @@ Return the database user password
     - name: DB_PORT
       value: {{ include "supabase.database.port" . | quote }}
     - name: DB_USER
-      values: {{ include "supabase.database.username" . | quote }}
+      value: {{ include "supabase.database.supabase_username" . | quote }}
 {{- end -}}

@@ -31,20 +31,10 @@ secret:
   # database admin user credentials
   # these fields must be provided even if using external database
   db:
-    # Override the database hostname if using external database
-    host: "DATABASE.NAMESPACE.svc.cluster.local"
-    port: 5432
-    sslmode: disable  # disable, allow, prefer, require, verify-ca, verify-full
-    # The 'supabase_admin' is hardcoded in the supabase/postgres container
-    username: "supabase_admin"
     password: ""
-    # The 'postgres' is hardcoded in the supabase/postgres container
-    database: "postgres"
-    # specify existing secret, which takes precedence over variables above
     secretRef: ""
     # override secret keys for existing secret refs
     secretRefKey:
-      username: username
       password: password
   # analytics Logflare API key
   analytics:
@@ -85,6 +75,24 @@ secret:
     secretRefKey:
       keyId: keyId
       accessKey: accessKey
+
+external_db:
+  # Override the database hostname if using external database
+  host: "DATABASE.NAMESPACE.svc.cluster.local"
+  port: 5432
+  # https://www.postgresql.org/docs/current/libpq-ssl.html
+  # Allowed values: verify-ca, verify-full, disable, allow, prefer, require
+  sslmode: disable
+  # The non-root user for postgres, additional users should be created with db init, see:
+  # https://github.com/supabase/supabase/blob/master/docker/volumes/db/roles.sql
+  username: "supabase_admin"
+  password: ""
+  # The 'postgres' is hardcoded in the supabase/postgres container
+  database: "postgres"
+  secretRef: ""
+  # override secret keys for existing secret refs
+  secretRefKey:
+    password: password
 
 init_db:
   image:
@@ -473,7 +481,6 @@ realtime:
     type: ClusterIP
     port: 4000
   environment:
-    DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
     DB_ENC_KEY: supabaserealtime
     PORT: "4000"
     FLY_ALLOC_ID: fly123
@@ -900,7 +907,6 @@ analytics:
     port: 4000
   environment:
     LOGFLARE_NODE_HOST: 127.0.0.1
-    DB_SCHEMA: _analytics
     LOGFLARE_SINGLE_TENANT: "true"
     LOGFLARE_SUPABASE_MODE: "true"
     FEATURE_FLAG_OVERRIDE: multibackend=true

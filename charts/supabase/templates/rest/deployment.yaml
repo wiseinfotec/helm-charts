@@ -49,16 +49,16 @@ spec:
               value: {{ include "supabase.database.host" . | quote }}
             - name: DB_PORT
               value: {{ include "supabase.database.port" . | quote }}
-            - name: DB_SSL
+            - name: DB_SSL_MODE
               value: {{ include "supabase.database.sslmode" . | quote }}
             - name: DB_USERNAME
-              value: {{ include "supabase.database.username" . | quote }}
+              value: {{ include "supabase.database.rest_username" . | quote }}
             - name: DB_PASSWORD
               value: {{ include "supabase.database.password" . | quote }}
             - name: DB_NAME
-              value: {{ include "supabase.database.name" . | quote }}
+              value: {{ include "supabase.database.db_name" . | quote }}
             - name: PGRST_DB_URI
-              value: postgres://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSL)
+              value: postgres://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSL_MODE)
             - name: PGRST_JWT_SECRET
               valueFrom:
                 secretKeyRef:

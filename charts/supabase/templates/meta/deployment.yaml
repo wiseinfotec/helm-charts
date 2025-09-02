@@ -52,9 +52,9 @@ spec:
             - name: PG_META_DB_SSL_MODE
               value: {{ include "supabase.database.sslmode" . | quote }}
             - name: PG_META_DB_NAME
-              value: {{ include "supabase.database.name" . | quote }}
+              value: {{ include "supabase.database.db_name" . | quote }}
             - name: PG_META_DB_USER
-              value: {{ include "supabase.database.username" . | quote }}
+              value: {{ include "supabase.database.supabase_username" . | quote }}
             - name: PG_META_DB_PASSWORD
               value: {{ include "supabase.database.password" . | quote }}
           {{- with .Values.meta.livenessProbe }}

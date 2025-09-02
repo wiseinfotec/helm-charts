@@ -53,16 +53,16 @@ spec:
               value: {{ include "supabase.database.host" . | quote }}
             - name: POSTGRES_PORT
               value: {{ include "supabase.database.port" . | quote }}
-            - name: POSTGRES_SSL
+            - name: POSTGRES_SSL_MODE
               value: {{ include "supabase.database.sslmode" . | quote }}
             - name: POSTGRES_USERNAME
-              value: {{ include "supabase.database.username" . | quote }}
+              value: {{ include "supabase.database.supabase_username" . | quote }}
             - name: POSTGRES_PASSWORD
               value: {{ include "supabase.database.password" . | quote }}
             - name: POSTGRES_DB
-              value: {{ include "supabase.database.name" . | quote }}
+              value: {{ include "supabase.database.db_name" . | quote }}
             - name: SUPABASE_DB_URL
-              value: postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=$(POSTGRES_SSL)
+              value: postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=$(POSTGRES_SSL_MODE)
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
