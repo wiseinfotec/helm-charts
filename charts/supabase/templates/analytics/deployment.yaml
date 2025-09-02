@@ -60,15 +60,25 @@ spec:
               value: {{ include "supabase.database.supabase_db_name" . | quote }}
             - name: DB_SCHEMA
               value: {{ include "supabase.database.analytics_db_name" . | quote }}
-            - name: LOGFLARE_API_KEY
+            - name: LOGFLARE_PUBLIC_ACCESS_TOKEN
               valueFrom:
                 secretKeyRef:
                   {{- if .Values.secret.analytics.secretRef }}
                   name: {{ .Values.secret.analytics.secretRef }}
-                  key: {{ .Values.secret.analytics.secretRefKey.apiKey | default "apiKey" }}
+                  key: {{ .Values.secret.analytics.secretRefKey.publicApiKey }}
                   {{- else }}
                   name: {{ include "supabase.secret.analytics" . }}
-                  key: apiKey
+                  key: publicApiKey
+                  {{- end }}
+            - name: LOGFLARE_PRIVATE_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secret.analytics.secretRef }}
+                  name: {{ .Values.secret.analytics.secretRef }}
+                  key: {{ .Values.secret.analytics.secretRefKey.privateApiKey }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.analytics" . }}
+                  key: privateApiKey
                   {{- end }}
             {{- if .Values.analytics.bigQuery.enabled }}
             - name: GOOGLE_PROJECT_ID
