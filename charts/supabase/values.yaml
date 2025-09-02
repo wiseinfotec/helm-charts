@@ -11,7 +11,8 @@
 # |-- 10. Analytics
 # |-- 11. Vector
 # |-- 12. Functions
-# |-- 13. Minio
+# |-- 13. Supavisor
+# |-- 14. Minio
 
 secret:
   # jwt will be used to reference secret in multiple services:
@@ -75,6 +76,20 @@ secret:
     secretRefKey:
       keyId: keyId
       accessKey: accessKey
+  api:
+    secret_key_base:
+      key: ""
+      secretRef: ""
+      # override secret keys for existing secret refs
+      secretRefKey:
+        key: key
+  pooler:
+    vault_enc_key:
+      key: ""
+      secretRef: ""
+      # override secret keys for existing secret refs
+      secretRefKey:
+        key: key
 
 external_db:
   # Override the database hostname if using external database
@@ -1069,6 +1084,85 @@ functions:
   #       items:
   #       - key: my_secret.ts
   #         path: name_of_file_in_container.ts
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Supavisor
+supavisor:
+  # Enable supavisor provisioning
+  enabled: true
+  image:
+    repository: supabase/supavisor
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  imagePullSecrets: []
+  replicaCount: 1
+  nameOverride: ""
+  fullnameOverride: ""
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 4000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 4000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+  deployment:
+    annotations: {}
+  services:
+    annotations: {}
+    type: ClusterIP
+    port: 6543
+  environment:
+    PORT: 4000
+    CLUSTER_POSTGRES: true
+    REGION: local
+    ERL_AFLAGS: -proto_dist inet_tcp
+    POOLER_TENANT_ID: your-tenant-id
+    POOLER_DEFAULT_POOL_SIZE: 20
+    POOLER_MAX_CLIENT_CONN: 100
+    POOLER_POOL_MODE: transaction
+    DB_POOL_SIZE: 5
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little

@@ -63,6 +63,16 @@ spec:
               value: {{ include "supabase.database.db_name" . | quote }}
             - name: DB_AFTER_CONNECT_QUERY
               value: {{ printf "SET search_path TO %s" (include "supabase.database.realtime_db_name" .) }}
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.api.secret_key_base.secretRef }}
+                  name: {{ .Values.api.secret_key_base.secretRef }}
+                  key: {{ .Values.api.secret_key_base.secretRefKey.key }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.api" . }}
+                  key: secret_key_base
+                  {{- end }}
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
@@ -74,15 +84,7 @@ spec:
                   key: secret
                   {{- end }}
             - name: API_JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.jwt.secretRef }}
-                  name: {{ .Values.secret.jwt.secretRef }}
-                  key: {{ .Values.secret.jwt.secretRefKey.secret | default "secret" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.jwt" . }}
-                  key: secret
-                  {{- end }}
+              value: $(JWT_SECRET)
           {{- with .Values.realtime.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
