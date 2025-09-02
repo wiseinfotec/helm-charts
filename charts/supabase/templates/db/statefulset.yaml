@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "supabase.db.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
   {{- with .Values.db.deployment.annotations }}

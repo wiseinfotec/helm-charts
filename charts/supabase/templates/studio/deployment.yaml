@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "supabase.studio.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
   {{- with .Values.studio.deployment.annotations }}

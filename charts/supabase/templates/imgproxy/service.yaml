@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "supabase.imgproxy.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
   {{- with .Values.imgproxy.service.annotations }}
