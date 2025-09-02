@@ -86,6 +86,16 @@ spec:
                   {{- end }}
             - name: API_JWT_SECRET
               value: $(JWT_SECRET)
+            - name: ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secret.jwt.secretRef }}
+                  name: {{ .Values.secret.jwt.secretRef }}
+                  key: {{ .Values.secret.jwt.secretRefKey.anonKey | default "anonKey" }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.jwt" . }}
+                  key: anonKey
+                  {{- end }}
           {{- with .Values.realtime.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
