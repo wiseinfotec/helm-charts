@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "supabase.auth.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
   {{- with .Values.auth.deployment.annotations }}
@@ -33,36 +34,7 @@ spec:
       securityContext:
         {{- toYaml .Values.auth.podSecurityContext | nindent 8 }}
       initContainers:
-        - name: init-db
-          image: postgres:15-alpine
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: DB_HOST
-              {{- if .Values.db.enabled }}
-              value: {{ include "supabase.db.fullname" . | quote }}
-              {{- else }}
-              value: {{ .Values.auth.environment.DB_HOST | quote }}
-              {{- end }}
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.username | default "username" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: username
-                  {{- end }}
-            - name: DB_PORT
-              value: {{ .Values.auth.environment.DB_PORT | quote }}
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              until pg_isready -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER); do
-              echo "Waiting for database to start..."
-              sleep 2
-              done
-            - echo "Database is ready"
+        {{- include "supabase.waitForDB" . | nindent 8 }}
       containers:
         - name: {{ include "supabase.auth.name" $ }}
           securityContext:
@@ -74,44 +46,22 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
-            {{- if .Values.db.enabled }}
             - name: DB_HOST
-              value: {{ include "supabase.db.fullname" . }}
-            {{- end }}
+              value: {{ include "supabase.database.host" . | quote }}
+            - name: DB_PORT
+              value: {{ include "supabase.database.port" . | quote }}
+            - name: DB_SSL_MODE
+              value: {{ include "supabase.database.sslmode" . | quote }}
+            - name: DB_USER
+              value: {{ include "supabase.database.auth_username" . | quote }}
             - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password
-                  {{- end }}
-            - name: DB_PASSWORD_ENC
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password_encoded
-                  {{- end }}
+              value: {{ include "supabase.database.password" . | quote }}
             - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.database | default "database" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: database
-                  {{- end }}
+              value: {{ include "supabase.database.db_name" . | quote }}
             - name: GOTRUE_DB_DATABASE_URL
-              value: $(DB_DRIVER)://$(DB_USER):$(DB_PASSWORD_ENC)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?search_path=auth&sslmode=$(DB_SSL)
+              value: postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSL_MODE)
             - name: GOTRUE_DB_DRIVER
-              value: $(DB_DRIVER)
+              value: postgres
             - name: GOTRUE_JWT_SECRET
               valueFrom:
                 secretKeyRef:

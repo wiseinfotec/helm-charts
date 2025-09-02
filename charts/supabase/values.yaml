@@ -11,7 +11,8 @@
 # |-- 10. Analytics
 # |-- 11. Vector
 # |-- 12. Functions
-# |-- 13. Minio
+# |-- 13. Supavisor
+# |-- 14. Minio
 
 secret:
   # jwt will be used to reference secret in multiple services:
@@ -28,27 +29,25 @@ secret:
       anonKey: anonKey
       serviceKey: serviceKey
       secret: secret
-  # database credentials
+  # database admin user credentials
   # these fields must be provided even if using external database
   db:
-    username: ""
     password: ""
-    database: ""
-    # specify existing secret, which takes precedence over variables above
     secretRef: ""
     # override secret keys for existing secret refs
     secretRefKey:
-      username: username
       password: password
-      database: database
   # analytics Logflare API key
   analytics:
-    apiKey: ""
+    # these cannot be the same value
+    privateApiKey: ""
+    publicApiKey: ""
     # specify existing secret, which takes precedence over variable above
     secretRef: ""
     # override secret keys for existing secret refs
     secretRefKey:
-      apiKey: apiKey
+      privateApiKey: privateApiKey
+      publicApiKey: publicApiKey
   # smtp will be used to reference secret including smtp credentials
   smtp:
     # username: ""
@@ -80,6 +79,45 @@ secret:
     secretRefKey:
       keyId: keyId
       accessKey: accessKey
+  api:
+    secret_key_base:
+      key: ""
+      secretRef: ""
+      # override secret keys for existing secret refs
+      secretRefKey:
+        key: key
+  pooler:
+    vault_enc_key:
+      key: ""
+      secretRef: ""
+      # override secret keys for existing secret refs
+      secretRefKey:
+        key: key
+
+external_db:
+  # Override the database hostname if using external database
+  host: "DATABASE.NAMESPACE.svc.cluster.local"
+  port: 5432
+  # https://www.postgresql.org/docs/current/libpq-ssl.html
+  # Allowed values: verify-ca, verify-full, disable, allow, prefer, require
+  sslmode: disable
+  # The non-root user for postgres, additional users should be created with db init, see:
+  # https://github.com/supabase/supabase/blob/master/docker/volumes/db/roles.sql
+  username: "supabase_admin"
+  password: ""
+  # The 'postgres' is hardcoded in the supabase/postgres container
+  database: "postgres"
+  secretRef: ""
+  # override secret keys for existing secret refs
+  secretRefKey:
+    password: password
+
+init_db:
+  image:
+    repository: postgres
+    pullPolicy: IfNotPresent
+    tag: "13.22-alpine"
+  podSecurityContext: {}
 
 # Optional: Postgres Database
 # A standalone Postgres database configured to work with Supabase services.
@@ -91,7 +129,7 @@ db:
   image:
     repository: supabase/postgres
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "17.4.1.078"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -180,13 +218,23 @@ studio:
   image:
     repository: supabase/studio
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "2025.09.01-sha-8bf1fd5"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
   fullnameOverride: ""
-  livenessProbe: {}
-  readinessProbe: {}
+  livenessProbe:
+    httpGet:
+      path: /api/platform/profile
+      port: 3000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /api/platform/profile
+      port: 3000
+    initialDelaySeconds: 5
+    periodSeconds: 5
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -212,8 +260,8 @@ studio:
     type: ClusterIP
     port: 3000
   environment:
-    STUDIO_DEFAULT_ORGANIZATION: Default Organization
-    STUDIO_DEFAULT_PROJECT: Default Project
+    DEFAULT_ORGANIZATION_NAME: Default Organization
+    DEFAULT_PROJECT_NAME: Default Project
     STUDIO_PORT: "3000"
     SUPABASE_PUBLIC_URL: http://example.com
     NEXT_PUBLIC_ENABLE_LOGS: "true"
@@ -258,13 +306,23 @@ auth:
   image:
     repository: supabase/gotrue
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v2.179.0"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
   fullnameOverride: ""
-  livenessProbe: {}
-  readinessProbe: {}
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9999
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9999
+    initialDelaySeconds: 5
+    periodSeconds: 5
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -290,12 +348,6 @@ auth:
     type: ClusterIP
     port: 9999
   environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USER: supabase_auth_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgres
-    DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
     API_EXTERNAL_URL: http://example.com
     GOTRUE_API_HOST: "0.0.0.0"
     GOTRUE_API_PORT: "9999"
@@ -362,7 +414,7 @@ rest:
   image:
     repository: postgrest/postgrest
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v13.0.6"
   imagePullSecrets: []
   nameOverride: ""
   fullnameOverride: ""
@@ -393,12 +445,6 @@ rest:
     type: ClusterIP
     port: 3000
   environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USER: authenticator
-    DB_PORT: 5432
-    DB_DRIVER: postgres
-    DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
     PGRST_DB_SCHEMAS: public,storage,graphql_public
     PGRST_DB_ANON_ROLE: anon
     PGRST_DB_USE_LEGACY_GUCS: false
@@ -442,11 +488,26 @@ realtime:
   image:
     repository: supabase/realtime
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v2.46.3"
   imagePullSecrets: []
   nameOverride: ""
   fullnameOverride: ""
-  livenessProbe: {}
+  livenessProbe:
+    exec:
+      command:
+        - curl
+        - -sSfL
+        - --head
+        - -o
+        - /dev/null
+        - -H
+        - Authorization: Bearer ${ANON_KEY}
+        - http://localhost:4000/api/tenants/realtime-dev/health
+    httpGet:
+      path: /api/tenants/realtime-dev/health
+      port: 4000
+    initialDelaySeconds: 5
+    periodSeconds: 5
   readinessProbe: {}
   serviceAccount:
     # Specifies whether a service account should be created
@@ -473,20 +534,14 @@ realtime:
     type: ClusterIP
     port: 4000
   environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USER: supabase_admin
-    DB_PORT: 5432
-    DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
-    DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
     DB_ENC_KEY: supabaserealtime
     PORT: "4000"
     FLY_ALLOC_ID: fly123
     FLY_APP_NAME: realtime
-    SECRET_KEY_BASE: UpNVntn3cDxHJpq99YMc1T1AQgQpc8kfYTuRgBiYa15BLrx8etQoXz3gZv1/u2oq
     ERL_AFLAGS: -proto_dist inet_tcp
     ENABLE_TAILSCALE: "false"
     DNS_NODES: "''"
+    RLIMIT_NOFILE: "10000"
   # volumeMounts:
   #   - name: volume_name
   #     mountPath: /path/to/my/secret
@@ -526,7 +581,7 @@ meta:
   image:
     repository: supabase/postgres-meta
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v0.91.5"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -558,12 +613,6 @@ meta:
     type: ClusterIP
     port: 8080
   environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USER: supabase_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgres
-    DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
     PG_META_PORT: "8080"
   # volumeMounts:
   #   - name: volume_name
@@ -604,13 +653,23 @@ storage:
   image:
     repository: supabase/storage-api
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v1.26.4"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
   fullnameOverride: ""
-  livenessProbe: {}
-  readinessProbe: {}
+  livenessProbe:
+    httpGet:
+      path: /status
+      port: 5000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /status
+      port: 5000
+    initialDelaySeconds: 5
+    periodSeconds: 5
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -636,11 +695,6 @@ storage:
     type: ClusterIP
     port: 5000
   environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USER: supabase_storage_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgres
     DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
     PGOPTIONS: -c search_path=storage,public
     FILE_SIZE_LIMIT: "52428800"
@@ -702,13 +756,25 @@ imgproxy:
   image:
     repository: darthsim/imgproxy
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v3.29.1"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
   fullnameOverride: ""
-  livenessProbe: {}
-  readinessProbe: {}
+  livenessProbe:
+    exec:
+      command:
+      - imgproxy
+      - health
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  readinessProbe:
+    exec:
+      command:
+      - imgproxy
+      - health
+    initialDelaySeconds: 5
+    periodSeconds: 5
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -785,7 +851,7 @@ kong:
   image:
     repository: kong
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "3.9.1"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -883,13 +949,23 @@ analytics:
   image:
     repository: supabase/logflare
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "1.20.1"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
   fullnameOverride: ""
-  livenessProbe: {}
-  readinessProbe: {}
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 4000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 4000
+    initialDelaySeconds: 5
+    periodSeconds: 5
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -916,15 +992,10 @@ analytics:
     port: 4000
   environment:
     LOGFLARE_NODE_HOST: 127.0.0.1
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USERNAME: supabase_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgresql
-    DB_SCHEMA: _analytics
     LOGFLARE_SINGLE_TENANT: "true"
     LOGFLARE_SUPABASE_MODE: "true"
     FEATURE_FLAG_OVERRIDE: multibackend=true
+    LOGFLARE_MIN_CLUSTER_SIZE: 1
   # Enable Big Query backend for analytics
   bigQuery:
     enabled: false
@@ -970,13 +1041,23 @@ vector:
   image:
     repository: timberio/vector
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "0.49.0-alpine"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
   fullnameOverride: ""
-  livenessProbe: {}
-  readinessProbe: {}
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9001
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9001
+    initialDelaySeconds: 5
+    periodSeconds: 5
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -1040,7 +1121,7 @@ functions:
   image:
     repository: supabase/edge-runtime
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v1.69.6"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""
@@ -1072,12 +1153,7 @@ functions:
     type: ClusterIP
     port: 9000
   environment:
-    # Override the database hostname if using external database
-    # DB_HOST: DATABASE.NAMESPACE.svc.cluster.local
-    DB_USERNAME: supabase_functions_admin
-    DB_PORT: 5432
-    DB_DRIVER: postgresql
-    DB_SSL: disable  # disable, allow, prefer, require, verify-ca, verify-full
+    VERIFY_JWT: false
   # Mount user functions
   # volumeMounts:
   #   - name: my_functions
@@ -1111,13 +1187,92 @@ functions:
   tolerations: []
   affinity: {}
 
+# Supavisor
+supavisor:
+  # Enable supavisor provisioning
+  enabled: true
+  image:
+    repository: supabase/supavisor
+    pullPolicy: IfNotPresent
+    tag: "2.6.2"
+  imagePullSecrets: []
+  replicaCount: 1
+  nameOverride: ""
+  fullnameOverride: ""
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 4000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 4000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+  podAnnotations: {}
+  podSecurityContext: {}
+    # fsGroup: 2000
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+  deployment:
+    annotations: {}
+  service:
+    annotations: {}
+    type: ClusterIP
+    port: 6543
+  environment:
+    PORT: 4000
+    CLUSTER_POSTGRES: true
+    REGION: local
+    ERL_AFLAGS: -proto_dist inet_tcp
+    POOLER_TENANT_ID: your-tenant-id
+    POOLER_DEFAULT_POOL_SIZE: 20
+    POOLER_MAX_CLIENT_CONN: 100
+    POOLER_POOL_MODE: transaction
+    DB_POOL_SIZE: 5
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
 # minio
 minio:
   enabled: false
   image:
     repository: minio/minio
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "RELEASE.2025-07-23T15-54-02Z"
   imagePullSecrets: []
   replicaCount: 1
   nameOverride: ""

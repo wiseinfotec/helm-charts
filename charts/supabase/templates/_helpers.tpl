@@ -60,3 +60,122 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Return the database host
+*/}}
+{{- define "supabase.database.host" -}}
+{{- if .Values.db.enabled -}}
+  {{- print (include "supabase.db.fullname" .) -}}
+{{- else -}}
+  {{- print .Values.external_db.host -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the database port
+*/}}
+{{- define "supabase.database.port" -}}
+{{- if .Values.db.enabled -}}
+  {{- print .Values.db.service.port -}}
+{{- else -}}
+  {{- print .Values.external_db.port -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the database sslmode
+*/}}
+{{- define "supabase.database.sslmode" -}}
+{{- if .Values.db.enabled -}}
+  {{- print "disable" -}}
+{{- else -}}
+  {{- print .Values.external_db.sslmode -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+The next variables are hardcoded in the supabase postgres db init scripts and migrations.
+*/}}
+{{- define "supabase.database.supabase_username" -}}
+{{- if .Values.db.enabled -}}
+  {{- print "supabase_admin" -}}
+{{- else -}}
+  {{- print .Values.external_db.username -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "supabase.database.storage_username" -}}
+  {{- print "supabase_storage_admin" -}}
+{{- end -}}
+
+{{- define "supabase.database.rest_username" -}}
+  {{- print "authenticator" -}}
+{{- end -}}
+
+{{- define "supabase.database.auth_username" -}}
+  {{- print "supabase_auth_admin" -}}
+{{- end -}}
+
+{{- define "supabase.database.db_name" -}}
+{{- if .Values.db.enabled -}}
+  {{- print "postgres" -}}
+{{- else -}}
+  {{- print .Values.external_db.database -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "supabase.database.supabase_db_name" -}}
+  {{- print "_supabase" -}}
+{{- end -}}
+
+{{- define "supabase.database.analytics_db_name" -}}
+  {{- print "_analytics" -}}
+{{- end -}}
+
+{{- define "supabase.database.realtime_db_name" -}}
+  {{- print "_realtime" -}}
+{{- end -}}
+
+{{/*
+Return the database user password
+*/}}
+{{- define "supabase.database.password" -}}
+{{- if .Values.db.enabled -}}
+{{- if .Values.secret.secretRef -}}
+  {{- print .Values.secret.db.secretRefKey.password -}}
+{{- else -}}
+  {{- print .Values.secret.db.password -}}
+{{- end -}}
+{{- else -}}
+{{- if .Values.external_db.secretRef -}}
+  {{- print .Values.external_db.secretRefKey.password -}}
+{{- else -}}
+  {{- print .Values.external_db.password -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "supabase.waitForDB" -}}
+- name: wait-for-db
+  image: {{ .Values.init_db.image.repository }}:{{ .Values.init_db.image.tag }}
+  imagePullPolicy: {{ .Values.init_db.image.pullPolicy }}
+  securityContext:
+  {{- toYaml .Values.init_db.podSecurityContext | nindent 4 }}
+  command:
+    - bash
+    - -ec
+    - |
+      until pg_isready -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER); do
+      echo "Waiting for database to start..."
+      sleep 2
+      done
+    - echo "Database is ready"
+  env:
+    - name: DB_HOST
+      value: {{ include "supabase.database.host" . | quote }}
+    - name: DB_PORT
+      value: {{ include "supabase.database.port" . | quote }}
+    - name: DB_USER
+      value: {{ include "supabase.database.supabase_username" . | quote }}
+{{- end -}}

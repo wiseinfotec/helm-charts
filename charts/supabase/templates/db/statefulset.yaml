@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "supabase.db.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
   {{- with .Values.db.deployment.annotations }}
@@ -44,6 +45,7 @@ spec:
               cp /custom-init-scripts/98-webhooks.sql /initdb.d/init-scripts/
               cp /custom-init-scripts/99-roles.sql /initdb.d/init-scripts/
               cp /custom-init-scripts/99-logs.sql /initdb.d/migrations/
+              cp /custom-init-scripts/99-pooler.sql /initdb.d/migrations/
               cp /custom-init-scripts/99-realtime.sql /initdb.d/migrations/
 
               echo "Copying user-defined migration scripts..."
@@ -72,55 +74,15 @@ spec:
               value: {{ $value | quote }}
             {{- end }}
             - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.username | default "username" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: username
-                  {{- end }}
+              value: {{ include "supabase.database.supabase_username" . | quote }}
             - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password
-                  {{- end }}
+              value: {{ include "supabase.database.password" . | quote }}
             - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password
-                  {{- end }}
+              value: $(PGPASSWORD)
             - name: PGDATABASE
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.database | default "database" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: database
-                  {{- end }}
+              value: {{ include "supabase.database.db_name" . | quote }}
             - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.database | default "database" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: database
-                  {{- end }}
+              value: $(PGDATABASE)
           {{- with .Values.db.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

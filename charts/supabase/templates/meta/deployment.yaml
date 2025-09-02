@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "supabase.meta.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
   {{- with .Values.meta.deployment.annotations }}
@@ -32,6 +33,8 @@ spec:
       serviceAccountName: {{ include "supabase.meta.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.meta.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- include "supabase.waitForDB" . | nindent 8 }}
       containers:
         - name: {{ include "supabase.meta.name" $ }}
           securityContext:
@@ -43,42 +46,18 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
-            {{- if .Values.db.enabled }}
-            - name: DB_HOST
-              value: {{ include "supabase.db.fullname" . }}
-            {{- end }}
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password
-                  {{- end }}
-            - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.database | default "database" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: database
-                  {{- end }}
             - name: PG_META_DB_HOST
-              value: $(DB_HOST)
+              value: {{ include "supabase.database.host" . | quote }}
             - name: PG_META_DB_PORT
-              value: $(DB_PORT)
-            - name: PG_META_DB_NAME
-              value: $(DB_NAME)
-            - name: PG_META_DB_USER
-              value: $(DB_USER)
-            - name: PG_META_DB_PASSWORD
-              value: $(DB_PASSWORD)
+              value: {{ include "supabase.database.port" . | quote }}
             - name: PG_META_DB_SSL_MODE
-              value: $(DB_SSL)
+              value: {{ include "supabase.database.sslmode" . | quote }}
+            - name: PG_META_DB_NAME
+              value: {{ include "supabase.database.db_name" . | quote }}
+            - name: PG_META_DB_USER
+              value: {{ include "supabase.database.supabase_username" . | quote }}
+            - name: PG_META_DB_PASSWORD
+              value: {{ include "supabase.database.password" . | quote }}
           {{- with .Values.meta.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

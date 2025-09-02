@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "supabase.analytics.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
   {{- with .Values.analytics.deployment.annotations }}
@@ -33,36 +34,7 @@ spec:
       securityContext:
         {{- toYaml .Values.analytics.podSecurityContext | nindent 8 }}
       initContainers:
-        - name: init-db
-          image: postgres:15-alpine
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: DB_HOST
-              {{- if .Values.db.enabled }}
-              value: {{ include "supabase.db.fullname" . | quote }}
-              {{- else }}
-              value: {{ .Values.analytics.environment.DB_HOST | quote }}
-              {{- end }}
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.username | default "username" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: username
-                  {{- end }}
-            - name: DB_PORT
-              value: {{ .Values.analytics.environment.DB_PORT | quote }}
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              until pg_isready -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER); do
-              echo "Waiting for database to start..."
-              sleep 2
-              done
-            - echo "Database is ready"
+        {{- include "supabase.waitForDB" . | nindent 8 }}
       containers:
         - name: {{ include "supabase.analytics.name" $ }}
           securityContext:
@@ -75,50 +47,38 @@ spec:
               value: {{ $value | quote }}
             {{- end }}
             - name: DB_HOSTNAME
-              {{- if .Values.db.enabled }}
-              value: {{ include "supabase.db.fullname" . | quote }}
-              {{- else }}
-              value: {{ .Values.auth.environment.DB_HOST | quote }}
-              {{- end }}
+              value: {{ include "supabase.database.host" . | quote }}
+            - name: DB_PORT
+              value: {{ include "supabase.database.port" . | quote }}
+            - name: DB_SSL_MODE
+              value: {{ include "supabase.database.sslmode" . | quote }}
+            - name: DB_USERNAME
+              value: {{ include "supabase.database.supabase_username" . | quote }}
             - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password
-                  {{- end }}
-            - name: DB_PASSWORD_ENC
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password_encoded
-                  {{- end }}
+              value: {{ include "supabase.database.password" . | quote }}
             - name: DB_DATABASE
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.database | default "database" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: database
-                  {{- end }}
-            - name: LOGFLARE_API_KEY
+              value: {{ include "supabase.database.supabase_db_name" . | quote }}
+            - name: DB_SCHEMA
+              value: {{ include "supabase.database.analytics_db_name" . | quote }}
+            - name: LOGFLARE_PUBLIC_ACCESS_TOKEN
               valueFrom:
                 secretKeyRef:
                   {{- if .Values.secret.analytics.secretRef }}
                   name: {{ .Values.secret.analytics.secretRef }}
-                  key: {{ .Values.secret.analytics.secretRefKey.apiKey | default "apiKey" }}
+                  key: {{ .Values.secret.analytics.secretRefKey.publicApiKey }}
                   {{- else }}
                   name: {{ include "supabase.secret.analytics" . }}
-                  key: apiKey
+                  key: publicApiKey
+                  {{- end }}
+            - name: LOGFLARE_PRIVATE_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secret.analytics.secretRef }}
+                  name: {{ .Values.secret.analytics.secretRef }}
+                  key: {{ .Values.secret.analytics.secretRefKey.privateApiKey }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.analytics" . }}
+                  key: privateApiKey
                   {{- end }}
             {{- if .Values.analytics.bigQuery.enabled }}
             - name: GOOGLE_PROJECT_ID
@@ -127,7 +87,7 @@ spec:
               value: {{ .Values.analytics.bigQuery.projectNumber | quote }}
             {{- else }}
             - name: POSTGRES_BACKEND_URL
-              value: $(DB_DRIVER)://$(DB_USERNAME):$(DB_PASSWORD_ENC)@$(DB_HOSTNAME):$(DB_PORT)/$(DB_DATABASE)
+              value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOSTNAME):$(DB_PORT)/$(DB_DATABASE)?sslmode=$(DB_SSL_MODE)
             - name: POSTGRES_BACKEND_SCHEMA
               value: $(DB_SCHEMA)
             - name: LOGFLARE_FEATURE_FLAG_OVERRIDE

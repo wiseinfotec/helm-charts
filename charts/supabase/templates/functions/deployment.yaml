@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "supabase.functions.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
   {{- with .Values.functions.deployment.annotations }}
@@ -32,6 +33,8 @@ spec:
       serviceAccountName: {{ include "supabase.functions.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.functions.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- include "supabase.waitForDB" . | nindent 8 }}
       containers:
         - args:
             - start
@@ -47,42 +50,20 @@ spec:
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
-            - name: DB_HOSTNAME
-              {{- if .Values.db.enabled }}
-              value: {{ include "supabase.db.fullname" . }}
-              {{- else }}
-              value: $(DB_HOST)
-              {{- end }}
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password
-                  {{- end }}
-            - name: DB_PASSWORD_ENC
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.password | default "password" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: password_encoded
-                  {{- end }}
-            - name: DB_DATABASE
-              valueFrom:
-                secretKeyRef:
-                  {{- if .Values.secret.db.secretRef }}
-                  name: {{ .Values.secret.db.secretRef }}
-                  key: {{ .Values.secret.db.secretRefKey.database | default "database" }}
-                  {{- else }}
-                  name: {{ include "supabase.secret.db" . }}
-                  key: database
-                  {{- end }}
+            - name: POSTGRES_HOST
+              value: {{ include "supabase.database.host" . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ include "supabase.database.port" . | quote }}
+            - name: POSTGRES_SSL_MODE
+              value: {{ include "supabase.database.sslmode" . | quote }}
+            - name: POSTGRES_USERNAME
+              value: {{ include "supabase.database.supabase_username" . | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ include "supabase.database.password" . | quote }}
+            - name: POSTGRES_DB
+              value: {{ include "supabase.database.db_name" . | quote }}
+            - name: SUPABASE_DB_URL
+              value: postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=$(POSTGRES_SSL_MODE)
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
@@ -113,8 +94,10 @@ spec:
                   name: {{ include "supabase.secret.jwt" . }}
                   key: serviceKey
                   {{- end }}
-            - name: POSTGRES_BACKEND_URL
-              value: $(DB_DRIVER)://$(DB_USERNAME):$(DB_PASSWORD_ENC)@$(DB_HOSTNAME):$(DB_PORT)/$(DB_DATABASE)?search_path=auth&sslmode=$(DB_SSL)
+            {{- if .Values.kong.enabled }}
+            - name: SUPABASE_URL
+              value: http://{{ include "supabase.kong.fullname" . }}:{{ .Values.kong.service.port }}
+            {{- end }}
           {{- with .Values.functions.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

@@ -1,0 +1,137 @@
+{{- if .Values.supavisor.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "supabase.supavisor.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "supabase.labels" . | nindent 4 }}
+  {{- with .Values.supavisor.deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.supavisor.autoscaling.enabled }}
+  replicas: {{ .Values.supavisor.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "supabase.supavisor.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.supavisor.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "supabase.supavisor.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Always
+      {{- with .Values.supavisor.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "supabase.supavisor.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.supavisor.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- include "supabase.waitForDB" . | nindent 8 }}
+      containers:
+        - name: {{ include "supabase.supavisor.name" $ }}
+          securityContext:
+            {{- toYaml .Values.supavisor.securityContext | nindent 12 }}
+          image: "{{ .Values.supavisor.image.repository }}:{{ .Values.supavisor.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.supavisor.image.pullPolicy }}
+          command: ["/bin/sh"]
+          args: ["-c", "/app/bin/migrate && /app/bin/supavisor eval \"$$(cat /etc/pooler/pooler.exs)\" && /app/bin/server"]
+          env:
+            {{- range $key, $value := .Values.supavisor.environment }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            - name: POSTGRES_HOST
+              value: {{ include "supabase.database.host" . | quote }}
+            - name: POSTGRES_PORT
+              value: {{ include "supabase.database.port" . | quote }}
+            - name: POSTGRES_SSL_MODE
+              value: {{ include "supabase.database.sslmode" . | quote }}
+            - name: POSTGRES_USER
+              value: {{ include "supabase.database.supabase_username" . | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ include "supabase.database.password" . | quote }}
+            - name: POSTGRES_DB
+              value: {{ include "supabase.database.supabase_db_name" . | quote }}
+            - name: DATABASE_URL
+              value: ecto://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=$(POSTGRES_SSL_MODE)
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secret.api.secret_key_base.secretRef }}
+                  name: {{ .Values.secret.api.secret_key_base.secretRef }}
+                  key: {{ .Values.secret.api.secret_key_base.secretRefKey.key }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.api" . }}
+                  key: secret_key_base
+                  {{- end }}
+            - name: VAULT_ENC_KEY
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secret.pooler.vault_enc_key.secretRef }}
+                  name: {{ .Values.secret.pooler.vault_enc_key.secretRef }}
+                  key: {{ .Values.secret.pooler.vault_enc_key.secretRefKey.key }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.pooler" . }}
+                  key: vault_enc_key
+                  {{- end }}
+            - name: API_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secret.jwt.secretRef }}
+                  name: {{ .Values.secret.jwt.secretRef }}
+                  key: {{ .Values.secret.jwt.secretRefKey.secret | default "secret" }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.jwt" . }}
+                  key: secret
+                  {{- end }}
+            - name: METRICS_JWT_SECRET
+              value: $(API_JWT_SECRET)
+          {{- with .Values.supavisor.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.supavisor.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: postgresql
+              containerPort: 5432
+              protocol: TCP
+            - name: pooler
+              containerPort: 6543
+              protocol: TCP
+          {{- with .Values.supavisor.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - mountPath: /etc/pooler
+              subPath: pooler.exs
+              name: supavisor-pooler
+      {{- with .Values.supavisor.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.supavisor.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.supavisor.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: supavisor-pooler
+          configMap:
+            name: {{ include "supabase.supavisor.fullname" . }}-main
+{{- end }}

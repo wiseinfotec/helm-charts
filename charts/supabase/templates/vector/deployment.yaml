@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "supabase.vector.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
     vector.dev/exclude: "true"
@@ -53,15 +54,15 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
           {{- if .Values.analytics.enabled }}
-            - name: LOGFLARE_API_KEY
+            - name: LOGFLARE_PUBLIC_ACCESS_TOKEN
               valueFrom:
                 secretKeyRef:
                   {{- if .Values.secret.analytics.secretRef }}
                   name: {{ .Values.secret.analytics.secretRef }}
-                  key: {{ .Values.secret.analytics.secretRefKey.apiKey | default "apiKey" }}
+                  key: {{ .Values.secret.analytics.secretRefKey.publicApiKey }}
                   {{- else }}
                   name: {{ include "supabase.secret.analytics" . }}
-                  key: apiKey
+                  key: publicApiKey
                   {{- end }}
           {{- end }}
           {{- with .Values.vector.livenessProbe }}
