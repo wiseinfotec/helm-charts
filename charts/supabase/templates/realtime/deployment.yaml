@@ -67,9 +67,9 @@ spec:
             - name: SECRET_KEY_BASE
               valueFrom:
                 secretKeyRef:
-                  {{- if .Values.api.secret_key_base.secretRef }}
-                  name: {{ .Values.api.secret_key_base.secretRef }}
-                  key: {{ .Values.api.secret_key_base.secretRefKey.key }}
+                  {{- if .Values.secret.api.secret_key_base.secretRef }}
+                  name: {{ .Values.secret.api.secret_key_base.secretRef }}
+                  key: {{ .Values.secret.api.secret_key_base.secretRefKey.key }}
                   {{- else }}
                   name: {{ include "supabase.secret.api" . }}
                   key: secret_key_base

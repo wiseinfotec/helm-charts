@@ -1226,7 +1226,7 @@ supavisor:
     # runAsUser: 1000
   deployment:
     annotations: {}
-  services:
+  service:
     annotations: {}
     type: ClusterIP
     port: 6543

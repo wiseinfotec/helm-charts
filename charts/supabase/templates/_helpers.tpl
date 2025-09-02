@@ -147,13 +147,13 @@ Return the database user password
 {{- else -}}
   {{- print .Values.secret.db.password -}}
 {{- end -}}
-{{- else-}}
+{{- else -}}
 {{- if .Values.external_db.secretRef -}}
   {{- print .Values.external_db.secretRefKey.password -}}
 {{- else -}}
   {{- print .Values.external_db.password -}}
 {{- end -}}
-{{- end-}}
+{{- end -}}
 {{- end -}}
 
 {{- define "supabase.waitForDB" -}}
