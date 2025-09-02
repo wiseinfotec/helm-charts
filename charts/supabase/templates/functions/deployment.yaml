@@ -94,6 +94,10 @@ spec:
                   name: {{ include "supabase.secret.jwt" . }}
                   key: serviceKey
                   {{- end }}
+            {{- if .Values.kong.enabled }}
+            - name: SUPABASE_URL
+              value: http://{{ include "supabase.kong.fullname" . }}:{{ .Values.kong.service.port }}
+            {{- end }}
           {{- with .Values.functions.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
