@@ -79,26 +79,20 @@ secret:
     # secretRefKey:
       # keyId: keyId
       # accessKey: accessKey
-  api:
-    secret_key_base:
-      key: ""
-      # secretRef: ""
-      # override secret keys for existing secret refs
-      # secretRefKey:
-        # key: key
   pooler:
-    vault_enc_key:
-      key: ""
-      # secretRef: ""
-      # override secret keys for existing secret refs
-      # secretRefKey:
-        # key: key
+    vaultEncKey: ""
+    # secretRef: ""
+    # override secret keys for existing secret refs
+    # secretRefKey:
+      # vaultEncKey: vaultEncKey
   realtime:
     dbEncKey: ""
+    secretKeyBase: ""
     # override secret keys for existing secret refs
     # secretRef: ""
     # secretRefKey:
       # dbEncKey: dbEncKey
+      # secretKeyBase: secretKeyBase
 
 external_db:
   # Override the database hostname if using external database

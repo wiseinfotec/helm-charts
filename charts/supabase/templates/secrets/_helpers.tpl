@@ -6,13 +6,6 @@ Expand the name of the JWT secret.
 {{- end -}}
 
 {{/*
-Expand the name of the api secret.
-*/}}
-{{- define "supabase.secret.api" -}}
-{{- printf "%s-api" (include "supabase.fullname" .) }}
-{{- end -}}
-
-{{/*
 Expand the name of the pooler secret.
 */}}
 {{- define "supabase.secret.pooler" -}}
