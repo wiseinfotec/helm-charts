@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.7] - 2025-09-18
+
+- Fix "cannot unmarshal object into Go struct" error for supabase/realtime deployment
+
+## [0.1.6] - 2025-09-08
+
+- Add readinessProbe for supabase/realtime deployment
+
 ## [0.1.5] - 2025-09-02
 
 - Optimize init-db container
