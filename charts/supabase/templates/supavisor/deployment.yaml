@@ -66,22 +66,22 @@ spec:
             - name: SECRET_KEY_BASE
               valueFrom:
                 secretKeyRef:
-                  {{- if .Values.secret.api.secret_key_base.secretRef }}
-                  name: {{ .Values.secret.api.secret_key_base.secretRef }}
-                  key: {{ .Values.secret.api.secret_key_base.secretRefKey.key }}
+                  {{- if .Values.secret.realtime.secretRef }}
+                  name: {{ .Values.secret.realtime.secretRef }}
+                  key: {{ .Values.secret.realtime.secretRefKey.secretKeyBase | default "secretKeyBase" }}
                   {{- else }}
-                  name: {{ include "supabase.secret.api" . }}
-                  key: secret_key_base
+                  name: {{ include "supabase.secret.realtime" . }}
+                  key: secretKeyBase
                   {{- end }}
             - name: VAULT_ENC_KEY
               valueFrom:
                 secretKeyRef:
-                  {{- if .Values.secret.pooler.vault_enc_key.secretRef }}
-                  name: {{ .Values.secret.pooler.vault_enc_key.secretRef }}
-                  key: {{ .Values.secret.pooler.vault_enc_key.secretRefKey.key }}
+                  {{- if .Values.secret.pooler.secretRef }}
+                  name: {{ .Values.secret.pooler.secretRef }}
+                  key: {{ .Values.secret.pooler.secretRefKey.vaultEncKey | default "vaultEncKey" }}
                   {{- else }}
                   name: {{ include "supabase.secret.pooler" . }}
-                  key: vault_enc_key
+                  key: vaultEncKey
                   {{- end }}
             - name: API_JWT_SECRET
               valueFrom:

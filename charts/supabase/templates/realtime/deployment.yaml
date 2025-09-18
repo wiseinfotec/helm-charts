@@ -64,15 +64,25 @@ spec:
               value: {{ include "supabase.database.db_name" . | quote }}
             - name: DB_AFTER_CONNECT_QUERY
               value: {{ printf "SET search_path TO %s" (include "supabase.database.realtime_db_name" .) }}
+            - name: DB_ENC_KEY
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secret.realtime.secretRef }}
+                  name: {{ .Values.secret.realtime.secretRef }}
+                  key: {{ .Values.secret.realtime.secretRefKey.dbEncKey | default "dbEncKey" }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.realtime" . }}
+                  key: dbEncKey
+                  {{- end }}
             - name: SECRET_KEY_BASE
               valueFrom:
                 secretKeyRef:
-                  {{- if .Values.secret.api.secret_key_base.secretRef }}
-                  name: {{ .Values.secret.api.secret_key_base.secretRef }}
-                  key: {{ .Values.secret.api.secret_key_base.secretRefKey.key }}
+                  {{- if .Values.secret.realtime.secretRef }}
+                  name: {{ .Values.secret.realtime.secretRef }}
+                  key: {{ .Values.secret.realtime.secretRefKey.secretKeyBase | default "secretKeyBase" }}
                   {{- else }}
-                  name: {{ include "supabase.secret.api" . }}
-                  key: secret_key_base
+                  name: {{ include "supabase.secret.realtime" . }}
+                  key: secretKeyBase
                   {{- end }}
             - name: JWT_SECRET
               valueFrom:
