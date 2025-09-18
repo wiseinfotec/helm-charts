@@ -85,7 +85,7 @@ spec:
             - name: DB_USER
               value: {{ include "supabase.database.storage_username" . | quote }}
             - name: DB_PASSWORD
-              value: {{ include "supabase.database.password" . | quote }}
+              {{- include "supabase.database.password" . | nindent 12 }}
             - name: DB_NAME
               value: {{ include "supabase.database.db_name" . | quote }}
             - name: DATABASE_URL
