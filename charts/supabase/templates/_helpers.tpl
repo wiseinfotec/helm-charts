@@ -142,7 +142,7 @@ Return the database user password
 */}}
 {{- define "supabase.database.password" -}}
 {{- if .Values.db.enabled -}}
-{{- if .Values.secret.secretRef -}}
+{{- if .Values.secret.db.secretRef -}}
   {{- print .Values.secret.db.secretRefKey.password -}}
 {{- else -}}
   {{- print .Values.secret.db.password -}}
