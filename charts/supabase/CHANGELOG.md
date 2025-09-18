@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8] - 2025-09-18
+
+- Fix typo in the db secret key
+- Comment external secret refs in the value file
+- Add realtime DB_ENC_KEY from secret
+- Adjust secrets grouping
+
 ## [0.1.7] - 2025-09-18
 
 - Fix "cannot unmarshal object into Go struct" error for supabase/realtime deployment
