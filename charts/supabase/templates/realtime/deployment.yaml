@@ -96,6 +96,16 @@ spec:
                   name: {{ include "supabase.secret.jwt" . }}
                   key: anonKey
                   {{- end }}
+            - name: DB_ENC_KEY
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secret.realtime.secretRef }}
+                  name: {{ .Values.secret.realtime.secretRef }}
+                  key: {{ .Values.secret.realtime.secretRefKey.dbEncKey | default "dbEncKey" }}
+                  {{- else }}
+                  name: {{ include "supabase.secret.realtime" . }}
+                  key: dbEncKey
+                  {{- end }}
           {{- with .Values.realtime.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}

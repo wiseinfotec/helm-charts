@@ -69,3 +69,10 @@ Check if both s3 keys are valid
 {{- printf "false" -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Expand the name of the realtime secret.
+*/}}
+{{- define "supabase.secret.realtime" -}}
+{{- printf "%s-realtime" (include "supabase.fullname" .) }}
+{{- end -}}

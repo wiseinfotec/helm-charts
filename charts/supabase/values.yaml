@@ -93,6 +93,12 @@ secret:
       # override secret keys for existing secret refs
       # secretRefKey:
         # key: key
+  realtime:
+    dbEncKey: ""
+    # override secret keys for existing secret refs
+    # secretRef: ""
+    # secretRefKey:
+      # dbEncKey: dbEncKey
 
 external_db:
   # Override the database hostname if using external database
@@ -543,7 +549,6 @@ realtime:
     type: ClusterIP
     port: 4000
   environment:
-    DB_ENC_KEY: supabaserealtime
     PORT: "4000"
     FLY_ALLOC_ID: fly123
     FLY_APP_NAME: realtime
