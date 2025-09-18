@@ -41,6 +41,26 @@ entries:
   supabase:
   - apiVersion: v2
     appVersion: latest
+    created: "2025-09-18T14:12:37.881072911Z"
+    description: The open source Firebase alternative.
+    digest: e2c198f0e617dbef3680de713205c628760312055d36df62bb6cadf0a88ef494
+    kubeVersion: '>=1.18.0'
+    maintainers:
+    - name: WiseInfotec
+      url: https://wiseinfotec.net/
+    - name: Supabase Community
+      url: https://github.com/supabase-community/supabase-kubernetes
+    name: supabase
+    sources:
+    - https://github.com/supabase/supabase
+    - https://github.com/supabase-community/supabase-kubernetes
+    - https://github.com/wiseinfotec/helm-charts/charts/supabase
+    type: application
+    urls:
+    - https://github.com/wiseinfotec/helm-charts/releases/download/supabase-0.1.8/supabase-0.1.8.tgz
+    version: 0.1.8
+  - apiVersion: v2
+    appVersion: latest
     created: "2025-09-18T11:16:18.805661384Z"
     description: The open source Firebase alternative.
     digest: 8bfadbd6d14797f771c12f77009cf98a899e9f11c583d6344ff840c29c5b4458
@@ -139,4 +159,4 @@ entries:
     urls:
     - https://github.com/wiseinfotec/helm-charts/releases/download/supabase-0.1.3/supabase-0.1.3.tgz
     version: 0.1.3
-generated: "2025-09-18T11:16:18.805682023Z"
+generated: "2025-09-18T14:12:37.881102757Z"
