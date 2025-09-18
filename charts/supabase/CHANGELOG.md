@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.9] - 2025-09-19
+
+- Fix using existing secret for db password
+
 ## [0.1.8] - 2025-09-18
 
 - Fix typo in the db secret key
