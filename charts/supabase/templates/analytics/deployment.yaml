@@ -55,7 +55,7 @@ spec:
             - name: DB_USERNAME
               value: {{ include "supabase.database.supabase_username" . | quote }}
             - name: DB_PASSWORD
-              value: {{ include "supabase.database.password" . | quote }}
+              {{- include "supabase.database.password" . | nindent 12 }}
             - name: DB_DATABASE
               value: {{ include "supabase.database.supabase_db_name" . | quote }}
             - name: DB_SCHEMA

@@ -45,7 +45,7 @@ spec:
               value: {{ $value | quote }}
             {{- end }}
             - name: POSTGRES_PASSWORD
-              value: {{ include "supabase.database.password" . | quote }}
+              {{- include "supabase.database.password" . | nindent 12 }}
             {{- if .Values.kong.enabled }}
             - name: SUPABASE_URL
               value: http://{{ include "supabase.kong.fullname" . }}:{{ .Values.kong.service.port }}

@@ -58,7 +58,7 @@ spec:
             - name: POSTGRES_USER
               value: {{ include "supabase.database.supabase_username" . | quote }}
             - name: POSTGRES_PASSWORD
-              value: {{ include "supabase.database.password" . | quote }}
+              {{- include "supabase.database.password" . | nindent 12 }}
             - name: POSTGRES_DB
               value: {{ include "supabase.database.supabase_db_name" . | quote }}
             - name: DATABASE_URL
