@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.1.9.1] - 2025-09-21
+## [0.1.10] - 2025-09-21
 
 - Correct database password include in the deployments
 
