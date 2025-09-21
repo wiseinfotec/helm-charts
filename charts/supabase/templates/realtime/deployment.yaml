@@ -59,7 +59,7 @@ spec:
             - name: DB_USER
               value: {{ include "supabase.database.supabase_username" . | quote }}
             - name: DB_PASSWORD
-              {{- include "supabase.database.password" . | nindent 12 }}
+              {{- include "supabase.database.password" . | nindent 14 }}
             - name: DB_NAME
               value: {{ include "supabase.database.db_name" . | quote }}
             - name: DB_AFTER_CONNECT_QUERY
