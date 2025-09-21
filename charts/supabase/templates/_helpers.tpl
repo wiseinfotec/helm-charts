@@ -143,21 +143,21 @@ Return the database user password
 {{- define "supabase.database.password" -}}
 {{- if .Values.db.enabled -}}
 {{- if .Values.secret.db.secretRef -}}
-- valueFrom:
-    secretKeyRef:
-      name: {{ .Values.secret.db.secretRef }}
-      key: {{ .Values.secret.db.secretRefKey.password }}
+valueFrom:
+  secretKeyRef:
+    name: {{ .Values.secret.db.secretRef }}
+    key: {{ .Values.secret.db.secretRefKey.password }}
 {{- else -}}
-- value: {{ .Values.secret.db.password | quote }}
+value: {{ .Values.secret.db.password | quote }}
 {{- end -}}
 {{- else -}}
 {{- if .Values.external_db.secretRef -}}
-  - valueFrom:
-    secretKeyRef:
-      name: {{ .Values.external_db.secretRef }}
-      key: {{ .Values.external_db.secretRefKey.password }}
+valueFrom:
+  secretKeyRef:
+    name: {{ .Values.external_db.secretRef }}
+    key: {{ .Values.external_db.secretRefKey.password }}
 {{- else -}}
-- value: {{ .Values.external_db.password | quote }}
+value: {{ .Values.external_db.password | quote }}
 {{- end -}}
 {{- end -}}
 {{- end -}}
