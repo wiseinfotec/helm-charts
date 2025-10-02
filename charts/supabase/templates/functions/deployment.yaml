@@ -110,7 +110,9 @@ spec:
             {{- with .Values.functions.volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
-            - mountPath: /home/deno/functions/main
+            # We need subPath to get rid of symlinks
+            - mountPath: /home/deno/functions/main/index.ts
+              subPath: index.ts
               name: functions-main
           {{- with .Values.functions.resources }}
           resources:
