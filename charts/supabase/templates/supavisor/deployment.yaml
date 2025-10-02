@@ -115,7 +115,7 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
-            - mountPath: /etc/pooler
+            - mountPath: /etc/pooler/pooler.exs
               subPath: pooler.exs
               name: supavisor-pooler
       {{- with .Values.supavisor.nodeSelector }}
