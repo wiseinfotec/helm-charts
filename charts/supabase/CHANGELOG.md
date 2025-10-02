@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.11] - 2025-10-02
+
+- Avoid symlinks in the main function mount volume
+
 ## [0.1.10] - 2025-09-21
 
 - Correct database password include in the deployments
