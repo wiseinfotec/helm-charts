@@ -43,7 +43,9 @@ spec:
               echo "Copying init scripts into existing image script directory..."
               cp -r /docker-entrypoint-initdb.d/* /initdb.d/
               cp /custom-init-scripts/98-webhooks.sql /initdb.d/init-scripts/
+              cp /custom-init-scripts/99-jwt.sql /initdb.d/init-scripts/
               cp /custom-init-scripts/99-roles.sql /initdb.d/init-scripts/
+              cp /custom-init-scripts/97-_supabase.sql /initdb.d/migrations/
               cp /custom-init-scripts/99-logs.sql /initdb.d/migrations/
               cp /custom-init-scripts/99-pooler.sql /initdb.d/migrations/
               cp /custom-init-scripts/99-realtime.sql /initdb.d/migrations/
