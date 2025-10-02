@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "supabase.labels" . | nindent 4 }}
 data:
-  99-_supabase.sql: |
+  97-_supabase.sql: |
     \set pguser `echo "$POSTGRES_USER"`
 
     CREATE DATABASE _supabase WITH OWNER :pguser;
