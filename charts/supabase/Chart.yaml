@@ -2,7 +2,7 @@ apiVersion: v2
 name: supabase
 description: The open source Firebase alternative.
 type: application
-version: 0.1.11
+version: 0.1.12
 kubeVersion: ">=1.18.0"
 appVersion: latest
 sources:
