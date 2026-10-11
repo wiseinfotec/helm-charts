@@ -2,3 +2,21 @@
 .idea/*
 .vscode/*
 .DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.venv/
+venv/
+env/
+*.egg-info/
+build/
+dist/
