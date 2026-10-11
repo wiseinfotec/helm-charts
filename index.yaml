@@ -2,6 +2,23 @@ apiVersion: v1
 entries:
   gateway-api-standard-crds:
   - apiVersion: v2
+    appVersion: 1.6.3
+    created: "2026-10-11T15:07:03.376717141Z"
+    description: Gateway API Standard channel CRDs and upgrade validation resources
+    digest: 4067c5b527fdc0f66634f7d3418cabb34508c28dbaf455e2c66042814966a3a1
+    home: https://gateway-api.sigs.k8s.io/
+    kubeVersion: '>=1.31.0-0'
+    maintainers:
+    - name: WiseInfotec
+      url: https://wiseinfotec.net/
+    name: gateway-api-standard-crds
+    sources:
+    - https://github.com/kubernetes-sigs/gateway-api
+    type: application
+    urls:
+    - https://github.com/wiseinfotec/helm-charts/releases/download/gateway-api-standard-crds-0.1.3/gateway-api-standard-crds-0.1.3.tgz
+    version: 0.1.3
+  - apiVersion: v2
     appVersion: 1.6.2
     created: "2026-10-11T15:05:54.679376606Z"
     description: Gateway API Standard channel CRDs and upgrade validation resources
@@ -291,4 +308,4 @@ entries:
     urls:
     - https://github.com/wiseinfotec/helm-charts/releases/download/supabase-0.1.3/supabase-0.1.3.tgz
     version: 0.1.3
-generated: "2026-10-11T15:05:54.679406021Z"
+generated: "2026-10-11T15:07:03.376740436Z"
