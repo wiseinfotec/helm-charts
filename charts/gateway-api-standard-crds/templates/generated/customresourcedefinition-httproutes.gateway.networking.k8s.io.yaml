@@ -6,7 +6,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     api-approved.kubernetes.io: https://github.com/kubernetes-sigs/gateway-api/pull/4530
-    gateway.networking.k8s.io/bundle-version: v1.6.1
+    gateway.networking.k8s.io/bundle-version: v1.6.2
     gateway.networking.k8s.io/channel: standard
     helm.sh/resource-policy: keep
   name: httproutes.gateway.networking.k8s.io
@@ -1176,7 +1176,7 @@ spec:
                                         Reason of `UnsupportedValue`.
 
 
-                                        Support: Core'
+                                        Support: statusCode 301 and 302 are Core; all others are Extended.'
                                       enum:
                                       - 301
                                       - 302
@@ -2352,7 +2352,7 @@ spec:
                                   Reason of `UnsupportedValue`.
 
 
-                                  Support: Core'
+                                  Support: statusCode 301 and 302 are Core; all others are Extended.'
                                 enum:
                                 - 301
                                 - 302
@@ -4460,7 +4460,7 @@ spec:
                                         Reason of `UnsupportedValue`.
 
 
-                                        Support: Core'
+                                        Support: statusCode 301 and 302 are Core; all others are Extended.'
                                       enum:
                                       - 301
                                       - 302
@@ -5636,7 +5636,7 @@ spec:
                                   Reason of `UnsupportedValue`.
 
 
-                                  Support: Core'
+                                  Support: statusCode 301 and 302 are Core; all others are Extended.'
                                 enum:
                                 - 301
                                 - 302
