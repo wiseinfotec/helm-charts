@@ -200,7 +200,7 @@ def update_chart_text(chart_text: str, gateway_version: str, chart_version: str)
         return pattern.sub(f'{field}: "{value}"', text)
 
     chart_text = replace_field(chart_text, "version", chart_version)
-    return replace_field(chart_text, "appVersion", gateway_version)
+    return replace_field(chart_text, "appVersion", gateway_version).rstrip() + "\n"
 
 
 def install_update(staged_generated: Path, staged_chart: Path) -> None:
