@@ -1,0 +1,13 @@
+apiVersion: v2
+name: cilium-network-policy-crds
+description: Cilium network policy API definitions for bootstrap installation
+type: application
+version: "0.1.0"
+kubeVersion: ">=1.21.0-0"
+appVersion: "1.20.0"
+home: https://cilium.io/
+sources:
+  - https://github.com/cilium/cilium
+maintainers:
+  - name: WiseInfotec
+    url: https://wiseinfotec.net/
